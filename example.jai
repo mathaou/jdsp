@@ -3,7 +3,7 @@
 #import "String";
 
 #load "sdl.jai";
-#load "fft.jai";
+#load "module.jai";
 
 sample_rate := 48000.0;
 count := 0;

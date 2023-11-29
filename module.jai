@@ -106,11 +106,6 @@ __jfft_real_init :: (signal_length: int, wsave: []float, ifac: []int) {
 
 #load "common.jai";
 
-/*
-based off of fftpack - a C port of Fortran libraries
-https://www.netlib.org/fftpack/fft.c
-*/
-
 jfft_create_transformer :: (signal_length: int, scale_output: bool = false, allocator: Allocator = temp) -> *jfft_transformer #must {
     // allocate all our memory
     jfft := New(jfft_transformer, allocator=allocator);
