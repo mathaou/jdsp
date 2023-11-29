@@ -9,7 +9,7 @@ sample_rate := 48000.0;
 count := 0;
 
 load_samples_from_wav :: (path: string) -> []float32 {
-    #if 1 { // test data
+    #if 0 { // test data
         input := NewArray(2048 * 2, float32);
 
         for 0..(2048 * 2)-1 {
@@ -370,7 +370,7 @@ main :: () {
             ImGui.PlotHistogram("jfft magnitude/dB".data, dB_copy.data, xx (dB_copy.count / 2), 0, range.data, -60, 30,
                 .{xx (io.DisplaySize.x / 2 - 158), xx (io.DisplaySize.y / 4 - 50)});
 
-            ImGui.PlotLines("jfft inverse".data, inverse_copy.data, xx (inverse_copy.count / 2), 0, range.data, -200, 200,
+            ImGui.PlotLines("jfft inverse".data, inverse_copy.data, xx (inverse_copy.count), 0, range.data, -200, 200,
                 .{xx (io.DisplaySize.x - 150), xx (io.DisplaySize.y / 4 - 50)});
 
             // for buckets {
