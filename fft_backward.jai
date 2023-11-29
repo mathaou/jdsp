@@ -1,5 +1,3 @@
-#scope_file
-
 // for radix 1-5
 cc_index :: (a: int, b: int, c: int) -> int #expand {
     return (((c)*`radix + (b))*`ido + a) - `cc_offset;
@@ -594,34 +592,36 @@ __jfft_real_backward :: (n: int, r: []float, wsave: []float, ifac: []int) {
     rfftb1(n, r, wsave, array_view(wsave, n), ifac);
 }
 
-#scope_module
-
 jfft_backward :: (jfft: *jfft_transformer, input: []float32) {
-    if !__is_power_of_two(input.count) {
-        print("[jfft] woah nelly! FFT on non-power-of-two buffers is very slow. Next power of two would be %.\n", __next_power_of_two(input.count));
-        print("!!! comment this block out in `jfft_backward` if you really want to proceed, but don't say I didn't warn you. !!!");
-        assert(false);
+    #if 1 {
+        if !__is_power_of_two(input.count) {
+            print("[jfft] woah nelly! FFT on non-power-of-two buffers is very slow. Next power of two would be %.\n", __next_power_of_two(input.count));
+            print("!!! comment this block out in `jfft_backward` if you really want to proceed, but don't say I didn't warn you. !!!");
+            assert(false);
+        }
+    } else {
+        assert(input.count % 2 == 0);
     }
 
     __jfft_real_backward(jfft.n, input, jfft.wsave, jfft.ifac);
-    if jfft.scale_output {
-        for 0..jfft.n-1 input[it] *= jfft.n;
-    }
+    for 0..jfft.n-1 input[it] /= jfft.n;
 }
 
-jfft_backward_transform :: (input: []float32, scale_output: bool = false) {
-    if !__is_power_of_two(input.count) {
-        print("[jfft] woah nelly! FFT on non-power-of-two buffers is very slow. Next power of two would be %.\n", __next_power_of_two(input.count));
-        print("!!! comment this block out in `jfft_backward_transform` if you really want to proceed, but don't say I didn't warn you. !!!");
-        assert(false);
+jfft_backward_transform :: (input: []float32, allocator: Allocator = temp) {
+    #if 1 {
+        if !__is_power_of_two(input.count) {
+            print("[jfft] woah nelly! FFT on non-power-of-two buffers is very slow. Next power of two would be %.\n", __next_power_of_two(input.count));
+            print("!!! comment this block out in `jfft_backward_transform` if you really want to proceed, but don't say I didn't warn you. !!!");
+            assert(false);
+        }
+    } else {
+        assert(input.count % 2 == 0);
     }
 
-    jfft := jfft_create_transformer(input.count, scale_output=scale_output);
+    jfft := jfft_create_transformer(input.count, scale_output=scale_output, allocator=allocator);
 
     __jfft_real_backward(jfft.n, input, jfft.wsave, jfft.ifac);
-    if jfft.scale_output {
-        for 0..jfft.n-1 input[it] *= jfft.n;
-    }
+    for 0..jfft.n-1 input[it] /= jfft.n; // always scale output
 
     jfft_destroy_transformer(jfft);
 }

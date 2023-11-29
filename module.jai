@@ -1,5 +1,3 @@
-#scope_file
-
 ntryh :: int.[4, 2, 3, 5];
 
 // the C -> Fortran pipeline had GOTO up the wazoo so left labels as waypoints
@@ -102,11 +100,11 @@ __jfft_real_init :: (signal_length: int, wsave: []float, ifac: []int) {
         array_view(wsave, signal_length), ifac);
 }
 
-#scope_module
+#import "Basic";
 
 #load "common.jai";
 
-jfft_create_transformer :: (signal_length: int, scale_output: bool = false, allocator: Allocator = temp) -> *jfft_transformer #must {
+jfft_create_transformer :: (signal_length: int, allocator: Allocator = temp) -> *jfft_transformer #must {
     // allocate all our memory
     jfft := New(jfft_transformer, allocator=allocator);
     jfft.wsave = NewArray(2 * signal_length + 15 + 1, float32, allocator=allocator);
@@ -117,7 +115,6 @@ jfft_create_transformer :: (signal_length: int, scale_output: bool = false, allo
 
     jfft.n = signal_length;
     jfft.n_scale = 1.0 / jfft.n;
-    jfft.scale_output = scale_output;
 
     __jfft_real_init(jfft.n, jfft.wsave, jfft.ifac);
 
@@ -131,5 +128,6 @@ jfft_destroy_transformer :: (jfft: *jfft_transformer) {
 }
 
 #load "windowing.jai";
+#load "filter.jai";
 #load "fft_forward.jai";
 #load "fft_backward.jai";

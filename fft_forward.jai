@@ -1,5 +1,3 @@
-#scope_file
-
 __dradfg :: (ido: int, ip: int, l1: int, idl1: int, cc: []float32, c1: []float32, c2: []float32, ch: []float32, ch2: []float32, wa: []float32) {
     t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10: int;
     idij, ipph, l, ic, is, nbd, idp2, ipp2: int;
@@ -611,25 +609,18 @@ __jfft_real_forward :: (n: int, r: []float, wsave: []float, ifac: []int) {
         array_view(wsave, n), ifac);
 }
 
-// http://www.fftw.org/speed/method.html
-__get_mflops :: (length: int, microseconds: s64) -> float32 {
-    return 2.5 * length * log2(xx length) / microseconds;
-}
-
-#scope_module
-
 jfft_forward :: (jfft: *jfft_transformer, input: []float32) {
-    if !__is_power_of_two(input.count) {
-        print("[jfft] woah nelly! FFT on non-power-of-two buffers is very slow. Next power of two would be %.\n", __next_power_of_two(input.count));
-        print("!!! comment this block out in `jfft_forward` if you really want to proceed, but don't say I didn't warn you. !!!");
-        assert(false);
+    #if 1 {
+        if !__is_power_of_two(input.count) {
+            print("[jfft] woah nelly! FFT on non-power-of-two buffers is very slow. Next power of two would be %.\n", __next_power_of_two(input.count));
+            print("!!! comment this block out in `jfft_forward` if you really want to proceed, but don't say I didn't warn you. !!!");
+            assert(false);
+        }
+    } else {
+        assert(input.count % 2 == 0);
     }
 
-    // crashes on 512 investigate
     __jfft_real_forward(jfft.n, input, jfft.wsave, jfft.ifac);
-    if jfft.scale_output {
-        for 0..jfft.n-1 input[it] *= jfft.n_scale;
-    }
 }
 
 /*
@@ -637,19 +628,20 @@ if you won't need tight control of the internal arrays of a `jfft_transformer` t
 However, this does three allocations per call! If you don't want a lot of page faults then you should
 make transformer yourself.
 */
-jfft_forward_transform :: (input: []float32, scale_output: bool = false) {
-    if !__is_power_of_two(input.count) {
-        print("[jfft] woah nelly! FFT on non-power-of-two buffers is very slow. Next power of two would be %.\n", __next_power_of_two(input.count));
-        print("!!! comment this block out in `jfft_forward_transform` if you really want to proceed, but don't say I didn't warn you. !!!");
-        assert(false);
+jfft_forward_transform :: (input: []float32, allocator: Allocator = temp) {
+    #if 1 {
+        if !__is_power_of_two(input.count) {
+            print("[jfft] woah nelly! FFT on non-power-of-two buffers is very slow. Next power of two would be %.\n", __next_power_of_two(input.count));
+            print("!!! comment this block out in `jfft_forward_transform` if you really want to proceed, but don't say I didn't warn you. !!!");
+            assert(false);
+        }
+    } else {
+        assert(input.count % 2 == 0);
     }
 
-    jfft := jfft_create_transformer(input.count, scale_output=scale_output);
+    jfft := jfft_create_transformer(input.count, scale_output=scale_output, allocator=allocator);
 
     __jfft_real_forward(jfft.n, input, jfft.wsave, jfft.ifac);
-    if jfft.scale_output {
-        for 0..jfft.n-1 input[it] *= jfft.n_scale;
-    }
 
     jfft_destroy_transformer(jfft);
 }

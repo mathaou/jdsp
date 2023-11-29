@@ -1,5 +1,3 @@
-#scope_module
-
 #import "Math";
 
 __M_PI : float32 = 3.1415927;
@@ -7,6 +5,8 @@ __M_PI : float32 = 3.1415927;
 libm :: #system_library "libm";
 log10f :: (arg: float32) -> float32 #foreign libm;
 log2 :: (arg: float32) -> float32 #foreign libm;
+logf :: (arg: float32) -> float32 #foreign libm;
+coshf :: (arg: float32) -> float32 #foreign libm;
 sqrtf :: (arg: float32) -> float32 #foreign libm;
 cosf :: (arg: float32) -> float32 #foreign libm;
 sinf :: (arg: float32) -> float32 #foreign libm;
@@ -21,7 +21,6 @@ jfft_transformer :: struct {
     n_scale: float32; // for faster math
     wsave: []float;
     ifac: []int;
-    scale_output: bool;
     allocator: Allocator;
 }
 

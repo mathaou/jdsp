@@ -3,22 +3,24 @@
 #import "String";
 
 #load "sdl.jai";
-#load "module.jai";
+#import "DSP";
 
 sample_rate := 48000.0;
 count := 0;
 
+TEST :: false;
+
 load_samples_from_wav :: (path: string) -> []float32 {
-    #if 0 { // test data
+    #if TEST { // test data
         input := NewArray(2048 * 2, float32);
 
         for 0..(2048 * 2)-1 {
-            input[it] = cos(2 * __M_PI / sample_rate * 10000 * it);
+            input[it] = 2 * cos(2 * __M_PI / sample_rate * 10000 * it) + 5 * cos(2 * __M_PI / sample_rate * 6000 * it);
         }
 
         return input;
     } else {
-        WAV_HEADER :: 58; // sometimes 44 bytes idk depends on the file
+        WAV_HEADER :: 44; // sometimes 58 bytes idk depends on the file
 
         file, success := file_open(path, for_writing=false, keep_existing_content=true);
         assert(success);
@@ -49,13 +51,15 @@ load_samples_from_wav :: (path: string) -> []float32 {
     }
 }
 
-input: []float32 : #run load_samples_from_wav("click.wav");
 window_options := string.["None", "Parzen", "Welch", "Hanning", "Hamming", "Blackman", "Stepper"];
+filters := string.["None", "Lowpass", "Highpass", "Bandpass", "Bandstop"];
 
 WIDTH :: 1920;
 HEIGHT :: 1080;
 
 main :: () {
+    input: []float32 = load_samples_from_wav("rumminationii.wav");
+
     clear_color := make_vector4(0.45, 0.55, 0.60, 1.00);
     SDL_Init(SDL_INIT_VIDEO);
 
@@ -105,8 +109,6 @@ main :: () {
     inverse_copy: []float32;
     window_copy: []float32;
 
-    scale_output: bool;
-
     start: s64;
     sample_time: s64;
 
@@ -131,7 +133,7 @@ main :: () {
         assert(`input_length % v == 0); // sanity check
         `count = v;
 
-        `transformer = jfft_create_transformer(`count, scale_output=`scale_output);
+        `transformer = jfft_create_transformer(`count);
 
         `start, _ = to_microseconds(current_time_monotonic());
         `cursor = 0;
@@ -147,6 +149,7 @@ main :: () {
     // macro abuse I'm sorry
     next_block :: () #expand {
         if `cursor != 10000000 `cursor += `count;
+        else return;
 
         array_free(`range_copy);
         array_free(`magnitude_copy);
@@ -171,6 +174,7 @@ main :: () {
 
     previous_block :: () #expand {
         if `cursor != 0 `cursor -= `count;
+        else return;
 
         array_free(`range_copy);
         array_free(`magnitude_copy);
@@ -262,9 +266,10 @@ main :: () {
             range := sprint("% - %", cursor, cursor + count);
 
             if !pause && current - start >= sample_time { // only update based on sample_rate
+                defer cursor += count;
+
                 current_range = array_view(input, cursor, count);
                 range_copy = array_copy(current_range);
-                cursor += count;
 
                 jfft_forward(transformer, range_copy);
 
@@ -280,13 +285,11 @@ main :: () {
                 start, _ = to_microseconds(current_time_monotonic());
             }
 
+            #if TEST {
+                ImGui.Text("input[it] = 2 * cos(2 * __M_PI / sample_rate * 10000 * it) + 5 * cos(2 * __M_PI / sample_rate * 6000 * it);");
+            }
+
             ImGui.Text(sprint("updating every % usec", sample_time));
-
-            ImGui.SameLine();
-
-            before := scale_output;
-
-            ImGui.Checkbox("Scale Output", *scale_output);
 
             ImGui.SameLine();
 
@@ -306,30 +309,8 @@ main :: () {
                 }
             }
 
-            ImGui.SameLine();
-
-            if ImGui.BeginCombo("Filter", selected_window.data, 64) {
-                defer ImGui.EndCombo();
-
-                for window_options {
-                    is_selected := window_selection == it_index;
-                    if ImGui.Selectable(window_options[it_index].data, is_selected) {
-                        window_selection = it_index;
-                        selected_window = it;
-                    }
-
-                    if is_selected {
-                        ImGui.SetItemDefaultFocus();
-                    }
-                }
-            }
-
-            if before != scale_output {
-                init_count(count);
-            }
-
             ImGui.PlotLines("Original Signal".data, current_range.data, xx current_range.count, 0, range.data, -1, 1,
-                .{xx (io.DisplaySize.x - 150), xx (io.DisplaySize.y / 4 - 50)});
+                .{xx (io.DisplaySize.x - 150), xx (io.DisplaySize.y / 6)});
 
             if compare_nocase(selected_window, "None") != 0 {
                 window: jfft_window;
@@ -349,13 +330,14 @@ main :: () {
                 case "Stepper";
                     window = STEPPER;
                 }
-
                 window_copy = apply_window(current_range, window);
-                ImGui.PlotLines("Modified Signal".data, window_copy.data, xx window_copy.count, 0, range.data, -1, 1,
-                    .{xx (io.DisplaySize.x - 150), xx (io.DisplaySize.y / 4 - 50)});
+            } else {
+                window_copy = array_copy(current_range);
             }
 
-            // half the bins are used for results, N / 2 + 1 is nyquist\
+            ImGui.PlotLines("Modified Signal".data, window_copy.data, xx window_copy.count, 0, range.data, -1, 1,
+                .{xx (io.DisplaySize.x - 150), xx (io.DisplaySize.y / 6)});
+
             max: float32;
 
             for 0..(magnitude_copy.count / 2) {
@@ -363,24 +345,24 @@ main :: () {
             }
 
             ImGui.PlotHistogram("".data, magnitude_copy.data, xx (magnitude_copy.count / 2), 0, range.data, 0, max,
-                .{xx (io.DisplaySize.x / 2), xx (io.DisplaySize.y / 4 - 50)});
+                .{xx (io.DisplaySize.x / 2), xx (io.DisplaySize.y / 6)});
 
             ImGui.SameLine();
 
             ImGui.PlotHistogram("jfft magnitude/dB".data, dB_copy.data, xx (dB_copy.count / 2), 0, range.data, -60, 30,
-                .{xx (io.DisplaySize.x / 2 - 158), xx (io.DisplaySize.y / 4 - 50)});
+                .{xx (io.DisplaySize.x / 2 - 158), xx (io.DisplaySize.y / 6)});
 
-            ImGui.PlotLines("jfft inverse".data, inverse_copy.data, xx (inverse_copy.count), 0, range.data, -200, 200,
-                .{xx (io.DisplaySize.x - 150), xx (io.DisplaySize.y / 4 - 50)});
+            ImGui.PlotLines("jfft inverse".data, inverse_copy.data, xx (inverse_copy.count), 0, range.data, -1, 1,
+                .{xx (io.DisplaySize.x - 150), xx (io.DisplaySize.y / 6)});
 
-            // for buckets {
-            //     array_add(*peaks, xx it);
-            // }
+            for buckets {
+                array_add(*peaks, xx it);
+            }
 
-            // ImGui.PlotHistogram("frequency legend".data, peaks.data, xx peaks.count, 0, "".data, 0, xx (sample_rate / 2),
-            //     .{xx (io.DisplaySize.x - 150), xx (io.DisplaySize.y / 4 - 50)});
+            ImGui.PlotHistogram("frequency legend".data, peaks.data, xx peaks.count, 0, "".data, 0, xx (sample_rate / 2),
+                .{xx (io.DisplaySize.x - 150), xx (io.DisplaySize.y / 6)});
 
-            // array_reset(*peaks);
+            array_reset(*peaks);
         }
 
         ImGui.End();
