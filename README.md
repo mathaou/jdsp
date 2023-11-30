@@ -1,5 +1,7 @@
 # jdsp - Jai Digital Signal Processing Utilities
 
+![jfft](./jfft.gif)
+
 | Feature | Description|
 | --- | --- |
 | `jfft` | Fast Fourier Transforms with various windowing functions |
