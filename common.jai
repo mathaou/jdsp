@@ -18,7 +18,6 @@ __fabs :: (f: float32) -> float32 {
 
 jfft_transformer :: struct {
     n: int;
-    n_scale: float32; // for faster math
     wsave: []float;
     ifac: []int;
     allocator: Allocator;

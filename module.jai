@@ -1,102 +1,115 @@
 ntryh :: int.[4, 2, 3, 5];
 
-// the C -> Fortran pipeline had GOTO up the wazoo so left labels as waypoints
-__real_fft_init :: (n: int, wa: []float32, ifac: []int) {
-    ntry := 0;
-    j := -1;
-    nf := 0;
+__decompose :: (n: int, ifac: []int, ntryh: []int) -> int {
     nl := n;
+    ntry, nq, nr, i, j, nf: int;
 
-    labels :: enum {
-        L101;
-        L104;
-        L107;
-    }
-
-    target := labels.L101;
+    init := true;
 
     while outer := true {
-        if target == {
-        case labels.L101;
-            j += 1;
-            ifx j < 4 then ntry = ntryh[j] else ntry += 2;
-            #through;
-        case labels.L104;
-            nq := nl / ntry;
-            nr := nl - ntry * nq;
-            if nr != 0 {
-                __set_target_and_loop(labels.L101);
+        if init {
+            if j < 4 {
+                ntry = ntryh[j];
+            } else {
+                ntry += 2;
             }
+
+            j += 1;
+            init = false;
+        }
+
+        while inner := true {
+            nq = nl / ntry;
+            nr = nl - ntry * nq;
+
+            if nr != 0 {
+                init = true;
+                break inner;
+            };
 
             nf += 1;
             ifac[nf + 1] = ntry;
             nl = nq;
 
-            if ntry != 2 || nf == 1 {
-                __set_target_and_loop(labels.L107);
-            }
-
-            for 1..nf-1 {
-                ib := nf - it + 1;
-                ifac[ib + 1] = ifac[ib];
-            }
-
-            ifac[2] = 2;
-
-            #through;
-        case labels.L107;
-            if nl != 1 {
-                __set_target_and_loop(labels.L104);
-            }
-
-            ifac[0] = n;
-            ifac[1] = nf;
-
-            argh := TWO_PI / n;
-            is := 0;
-            nfm1 := nf - 1;
-            l1 := 1;
-
-            if nfm1 == 0 return;
-
-            for x: 0..nfm1-1 {
-                ip := ifac[x + 2];
-                ld := 0;
-                l2 := l1 * ip;
-                ido := n / l2;
-                ipm := ip - 1;
-
-                for 0..ipm-1 {
-                    ld += l1;
-                    i := is;
-                    argld := ld * argh;
-                    fi := 0.0;
-
-                    ii := 2;
-                    while ii < ido {
-                        defer ii += 2;
-                        fi += 1.0;
-                        arg := fi * argld;
-                        wa[i] = cos(arg);
-                        i += 1;
-                        wa[i] = sin(arg);
-                        i += 1;
-                    }
-
-                    is += ido;
+            if ntry == 2 && nf != 1 {
+                for i: 2..nf {
+                    ib := nf - i + 2;
+                    ifac[ib + 1] = ifac[ib];
                 }
 
-
-                l1 = l2;
+                ifac[2] = 2;
             }
 
-            return;
+            if nl != 1 {
+                continue inner;
+            }
+
+            break inner;
         }
+
+        if nl == 1 {
+            break outer;
+        } else {
+            init = true;
+            continue;
+        }
+    }
+
+    ifac[0] = n;
+    ifac[1] = nf;
+
+    return nf;
+}
+
+rffti1 :: (n: int, wa: []float32, ifac: []int) {
+    i, j, k1, l1, l2: int;
+    ld, ii, nf, ip, is: int;
+    ido, ipm, nfm1: int;
+    arg, argh, argld, fi: float32;
+
+    nf = __decompose(n, ifac, ntryh);
+
+    argh = (2.0*__M_PI) / cast(float32) n;
+    is = 0;
+    nfm1 = nf - 1;
+    l1 = 1;
+
+    if nfm1 == 0 {
+        return;
+    }
+
+    for k1: 1..nfm1 {
+        ip = ifac[k1 + 1];
+        ld = 0;
+        l2 = l1 * ip;
+        ido = n / l2;
+        ipm = ip - 1;
+
+        for j: 1..ipm {
+            ld += l1;
+            i = is;
+            argld = cast(float32) ld * argh;
+            fi = 0.0;
+
+            ii := 3;
+            while ii <= ido {
+                defer ii += 2;
+                i += 2;
+                fi += 1.;
+                arg = fi * argld;
+                wa[i - 2] = cosf(arg);
+                wa[i - 1] = sinf(arg);
+            }
+
+            is += ido;
+        }
+
+        l1 = l2;
     }
 }
 
 __jfft_real_init :: (signal_length: int, wsave: []float, ifac: []int) {
-    __real_fft_init(signal_length,
+    rffti1(signal_length,
         array_view(wsave, signal_length), ifac);
 }
 
@@ -114,9 +127,10 @@ jfft_create_transformer :: (signal_length: int, allocator: Allocator = temp) -> 
     jfft.allocator = allocator;
 
     jfft.n = signal_length;
-    jfft.n_scale = 1.0 / jfft.n;
 
-    __jfft_real_init(jfft.n, jfft.wsave, jfft.ifac);
+    if signal_length > 1 {
+        __jfft_real_init(jfft.n, jfft.wsave, jfft.ifac);
+    }
 
     return jfft;
 }
