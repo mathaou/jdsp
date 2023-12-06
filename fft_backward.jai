@@ -1,32 +1,4 @@
-// for radix 1-5
-cc_index :: (a: int, b: int, c: int) -> int #expand {
-    return (((c)*`radix + (b))*`ido + a) - `cc_offset;
-}
-
-ch_index :: (a: int, b: int, c: int) -> int #expand {
-    return (((c)*`l1 + (b))*`ido + a) - `ch_offset;
-}
-
-// for the g radix option
-c1_ref :: (a: int, b: int, c: int) -> int #expand {
-    return ((c)*`l1 + (b))*`ido + a - `c1_offset;
-}
-
-c2_ref :: (a: int, b: int) -> int #expand {
-    return (b)*`idl1 + a - `c2_offset;
-}
-
-cc_ref :: (a: int, b: int, c: int) -> int #expand {
-    return ((c)*`ip + (b))*`ido + a - `cc_offset;
-}
-
-ch_ref :: (a: int, b: int, c: int) -> int #expand {
-    return ((c)*`l1 + (b))*`ido + a - `ch_offset;
-}
-
-ch2_ref :: (a: int, b: int) -> int #expand{
-    return (b)*`idl1 + a - `ch2_offset;
-}
+#scope_file
 
 radbg :: (ido: int, ip: int, l1: int, idl1: int,
                   cc: []float32, c1: []float32, c2: []float32, ch: []float32, ch2: []float32, wa: []float32) {
@@ -591,6 +563,8 @@ __jfft_real_backward :: (n: int, r: []float, wsave: []float, ifac: []int) {
 
     rfftb1(n, r, wsave, array_view(wsave, n), ifac);
 }
+
+#scope_export
 
 jfft_backward :: (jfft: *jfft_transformer, input: []float32) {
     #if 1 {

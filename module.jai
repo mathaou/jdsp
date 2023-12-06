@@ -1,3 +1,5 @@
+#scope_file
+
 ntryh :: int.[4, 2, 3, 5];
 
 __decompose :: (n: int, ifac: []int, ntryh: []int) -> int {
@@ -112,6 +114,8 @@ __jfft_real_init :: (signal_length: int, wsave: []float, ifac: []int) {
     rffti1(signal_length,
         array_view(wsave, signal_length), ifac);
 }
+
+#scope_export
 
 #import "Basic";
 

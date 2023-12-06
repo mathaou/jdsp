@@ -1,3 +1,35 @@
+#scope_module
+
+// for radix 1-5
+cc_index :: (a: int, b: int, c: int) -> int #expand {
+    return (((c)*`radix + (b))*`ido + a) - `cc_offset;
+}
+
+ch_index :: (a: int, b: int, c: int) -> int #expand {
+    return (((c)*`l1 + (b))*`ido + a) - `ch_offset;
+}
+
+// for the g radix option
+c1_ref :: (a: int, b: int, c: int) -> int #expand {
+    return ((c)*`l1 + (b))*`ido + a - `c1_offset;
+}
+
+c2_ref :: (a: int, b: int) -> int #expand {
+    return (b)*`idl1 + a - `c2_offset;
+}
+
+cc_ref :: (a: int, b: int, c: int) -> int #expand {
+    return ((c)*`ip + (b))*`ido + a - `cc_offset;
+}
+
+ch_ref :: (a: int, b: int, c: int) -> int #expand {
+    return ((c)*`l1 + (b))*`ido + a - `ch_offset;
+}
+
+ch2_ref :: (a: int, b: int) -> int #expand{
+    return (b)*`idl1 + a - `ch2_offset;
+}
+
 #import "Math";
 
 __M_PI : float32 = 3.1415927;
@@ -15,6 +47,21 @@ __fabs :: (f: float32) -> float32 {
     if f < 0 return f * -1;
     return f;
 }
+
+FFT_IFAC :: 15;
+TWO_PI : float32 : #run __M_PI * 2;
+TAUR: float32 : -.5;
+TAUI : float32 : xx .86602540378443864676372317075293618;
+sqrt2 : float32 : xx SQRT2;
+HALF_SQRT_TWO : float32 : #run sqrt2 * .5;
+
+// for forward/backward goto-style if-case
+__set_target_and_loop :: (t: $T) #expand {
+    `target = t;
+    #insert "continue;";
+}
+
+#scope_export
 
 jfft_transformer :: struct {
     n: int;
@@ -57,19 +104,6 @@ __next_power_of_two :: (x: $T) -> T {
     x += 1;
 
     return x;
-}
-
-FFT_IFAC :: 15;
-TWO_PI : float32 : #run __M_PI * 2;
-TAUR: float32 : -.5;
-TAUI : float32 : xx .86602540378443864676372317075293618;
-sqrt2 : float32 : xx SQRT2;
-HALF_SQRT_TWO : float32 : #run sqrt2 * .5;
-
-// for forward/backward goto-style if-case
-__set_target_and_loop :: (t: $T) #expand {
-    `target = t;
-    #insert "continue;";
 }
 
 // each index of the output array corresponds to the frequency bracket. Sample rate needed for helpful info.

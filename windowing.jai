@@ -1,3 +1,5 @@
+#scope_file
+
 windowing_function :: #type (int, int) -> float;
 
 __basic_window: windowing_function : inline (i: int, nn: int) -> float {
@@ -52,6 +54,8 @@ __stepper: windowing_function : inline (i: int, nn: int) -> float32 {
     return .375 - .5 * cos(2.0 * __M_PI * fi / (fnn - 1.0)) +
         .125 * cos(4.0 * __M_PI * fi / (fnn - 1.0));
 }
+
+#scope_export
 
 jfft_window :: enum {
     PARZEN;
