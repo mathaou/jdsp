@@ -36,8 +36,6 @@ ch2_ref :: (a: int, b: int) -> int #expand{
 __M_PI : float32 = 3.1415927;
 
 #if OS == .WINDOWS {
-    // I thought math was passed implicityly by compiler on Windows so no clue what header is called. Saw
-    // this in Basic and thought it was worth a go - can't test I don't use Windows.
     libm :: #system_library "msvcrt";
 } else #if OS == .LINUX || OS == .ANDROID {
     libm :: #system_library "libm";

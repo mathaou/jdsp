@@ -115,10 +115,9 @@ __jfft_real_init :: (signal_length: int, wsave: []float, ifac: []int) {
         array_view(wsave, signal_length), ifac);
 }
 
-#scope_export
-
 #import "Basic";
 
+#scope_export
 #load "common.jai";
 
 jfft_create_transformer :: (signal_length: int, allocator: Allocator = temp) -> *jfft_transformer #must {
