@@ -10,6 +10,12 @@ count := 0;
 
 TEST :: false;
 
+window_options := string.["None", "Parzen", "Welch", "Hanning", "Hamming", "Blackman", "Stepper"];
+filters := string.["None", "Lowpass", "Highpass", "Bandpass", "Bandstop"];
+
+WIDTH :: 1920;
+HEIGHT :: 1080;
+
 load_samples_from_wav :: (path: string) -> []float32 {
     #if TEST { // test data
         input := NewArray(2048 * 2, float32);
@@ -20,7 +26,7 @@ load_samples_from_wav :: (path: string) -> []float32 {
 
         return input;
     } else {
-        WAV_HEADER :: 58; // sometimes 58 bytes idk depends on the file
+        WAV_HEADER :: 44; // sometimes 58 bytes idk depends on the file
 
         file, success := file_open(path, for_writing=false, keep_existing_content=true);
         assert(success);
@@ -41,7 +47,7 @@ load_samples_from_wav :: (path: string) -> []float32 {
         ifx pdiff > ndiff then n = next else n = prev;
 
         print("loaded % samples from %\n", n, path);
-        buffer := cast([]float32) NewArray(n, u8, true);
+        buffer := cast,force([]float32) NewArray(n, u8, true);
 
         file_set_position(file, WAV_HEADER);
         success = file_read(file, buffer.data, length);
@@ -51,14 +57,8 @@ load_samples_from_wav :: (path: string) -> []float32 {
     }
 }
 
-window_options := string.["None", "Parzen", "Welch", "Hanning", "Hamming", "Blackman", "Stepper"];
-filters := string.["None", "Lowpass", "Highpass", "Bandpass", "Bandstop"];
-input: []float32 : #run load_samples_from_wav("click.wav");
-
-WIDTH :: 1920;
-HEIGHT :: 1080;
-
 main :: () {
+    input: []float32 = load_samples_from_wav("rumminationii.wav");
 
     clear_color := make_vector4(0.45, 0.55, 0.60, 1.00);
     SDL_Init(SDL_INIT_VIDEO);

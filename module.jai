@@ -123,9 +123,9 @@ __jfft_real_init :: (signal_length: int, wsave: []float, ifac: []int) {
 
 jfft_create_transformer :: (signal_length: int, allocator: Allocator = temp) -> *jfft_transformer #must {
     // allocate all our memory
-    jfft := New(jfft_transformer, allocator=allocator);
-    jfft.wsave = NewArray(2 * signal_length + 15 + 1, float32, allocator=allocator);
-    jfft.ifac = NewArray(FFT_IFAC, int, allocator=allocator);
+    jfft := New(jfft_transformer,, allocator=allocator);
+    jfft.wsave = NewArray(2 * signal_length + 15 + 1, float32,, allocator=allocator);
+    jfft.ifac = NewArray(FFT_IFAC, int,, allocator=allocator);
 
     // keep track of this for cleanup if used
     jfft.allocator = allocator;
@@ -140,9 +140,9 @@ jfft_create_transformer :: (signal_length: int, allocator: Allocator = temp) -> 
 }
 
 jfft_destroy_transformer :: (jfft: *jfft_transformer) {
-    free(*jfft.wsave, jfft.allocator);
-    free(*jfft.ifac, jfft.allocator);
-    free(jfft, jfft.allocator);
+    free(*jfft.wsave,, jfft.allocator);
+    free(*jfft.ifac,, jfft.allocator);
+    free(jfft,, jfft.allocator);
 }
 
 #load "windowing.jai";

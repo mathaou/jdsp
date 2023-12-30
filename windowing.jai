@@ -73,7 +73,7 @@ apply_window :: (input: []float32, mode: jfft_window, scale: float32 = 1.0, allo
     n := input.count;
     assert(n > 0);
 
-    output := NewArray(n, float32, allocator=allocator);
+    output := NewArray(n, float32,, allocator=allocator);
 
     window: windowing_function;
 
