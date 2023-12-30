@@ -32,14 +32,23 @@ ch2_ref :: (a: int, b: int) -> int #expand{
 
 #import "Math";
 
+// 32 bit float max PI pretty sure
 __M_PI : float32 = 3.1415927;
 
-libm :: #system_library "libm";
+#if OS == .WINDOWS {
+    // I thought math was passed implicityly by compiler on Windows so no clue what header is called. Saw
+    // this in Basic and thought it was worth a go - can't test I don't use Windows.
+    libm :: #system_library "msvcrt";
+} else #if OS == .LINUX || OS == .ANDROID {
+    libm :: #system_library "libm";
+} else #if OS == .MACOS || OS == .PS5 {
+    libm :: #system_library "libc";
+}
+
 log10f :: (arg: float32) -> float32 #foreign libm;
 log2 :: (arg: float32) -> float32 #foreign libm;
 logf :: (arg: float32) -> float32 #foreign libm;
 coshf :: (arg: float32) -> float32 #foreign libm;
-sqrtf :: (arg: float32) -> float32 #foreign libm;
 cosf :: (arg: float32) -> float32 #foreign libm;
 sinf :: (arg: float32) -> float32 #foreign libm;
 
@@ -112,13 +121,13 @@ jfft_magnitude :: (input: []float32, allocator: Allocator = temp) -> []float32 #
     n := input.count;
     i := 0;
 
-    output := NewArray(n / 2, float32, allocator=allocator);
+    output := NewArray(n / 2, float32,, allocator=allocator);
 
     while i < n {
         defer i += 2;
         cosine_component := input[i];
         sine_component := input[i + 1];
-        magnitude := sqrtf((cosine_component * cosine_component) + (sine_component * sine_component));
+        magnitude := sqrt((cosine_component * cosine_component) + (sine_component * sine_component));
         output[i / 2] = magnitude;
     }
 
@@ -133,7 +142,7 @@ jfft_magnitude_transform :: (input: []float32) {
         defer i += 2;
         cosine_component := input[i];
         sine_component := input[i + 1];
-        magnitude := sqrtf((cosine_component * cosine_component) + (sine_component * sine_component));
+        magnitude := sqrt((cosine_component * cosine_component) + (sine_component * sine_component));
         input[i / 2] = magnitude;
     }
 }
@@ -142,7 +151,7 @@ jfft_magnitude_db :: (input: []float32, allocator: Allocator = temp) -> []float3
     n := input.count;
     i := 0;
 
-    output := NewArray(n / 2, float32, allocator=allocator);
+    output := NewArray(n / 2, float32,, allocator=allocator);
 
     while i < n {
         defer i += 2;

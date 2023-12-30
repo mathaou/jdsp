@@ -1,3 +1,5 @@
+// this currently is WIP
+
 tanf :: (arg: float32) -> float32 #foreign libm;
 sinhf :: (arg: float32) -> float32 #foreign libm;
 
@@ -67,7 +69,7 @@ https://en.wikipedia.org/wiki/Chebyshev_filter
         DATA);
         assert(epsilon != -1);
 
-        u: float32 = logf(1.0 + sqrtf(1.0 + epsilon * epsilon) / epsilon);
+        u: float32 = logf(1.0 + sqrt(1.0 + epsilon * epsilon) / epsilon);
         su: float32 = sinhf(u / cast(float32) order);
         cu: float32 = coshf(u / cast(float32) order);
 
@@ -127,7 +129,7 @@ https://en.wikipedia.org/wiki/Chebyshev_filter
         DATA);
         assert(epsilon != -1);
 
-        u: float32 = logf(1.0 + sqrtf(1.0 + epsilon * epsilon) / epsilon);
+        u: float32 = logf(1.0 + sqrt(1.0 + epsilon * epsilon) / epsilon);
         su: float32 = sinhf(u / cast(float32) order);
         cu: float32 = coshf(u / cast(float32) order);
 
@@ -195,7 +197,7 @@ https://en.wikipedia.org/wiki/Chebyshev_filter
         DATA);
         assert(epsilon != -1);
 
-        u: float32 = logf(1.0 + sqrtf(1.0 + epsilon * epsilon) / epsilon);
+        u: float32 = logf(1.0 + sqrt(1.0 + epsilon * epsilon) / epsilon);
         su: float32 = sinhf(2.0 * u / cast(float32) order);
         cu: float32 = coshf(2.0 * u / cast(float32) order);
 
@@ -267,7 +269,7 @@ https://en.wikipedia.org/wiki/Chebyshev_filter
         DATA);
         assert(epsilon != -1);
 
-        u: float32 = logf(1.0 + sqrtf(1.0 + epsilon * epsilon) / epsilon);
+        u: float32 = logf(1.0 + sqrt(1.0 + epsilon * epsilon) / epsilon);
         su: float32 = sinhf(2.0 * u / cast(float32) order);
         cu: float32 = coshf(2.0 * u / cast(float32) order);
 
@@ -365,18 +367,18 @@ jdsp_apply_softmax :: (data: []float32, target: int) -> float32 {
 jdsp_free_filter :: (filter: $T/jdsp_filter, allocator: Allocator = temp) {
     t := type_of(filter);
 
-    free(*filter.A, allocator);
-    free(*filter.d1, allocator);
-    free(*filter.d2, allocator);
-    free(*filter.w0, allocator);
-    free(*filter.w1, allocator);
-    free(*filter.w2, allocator);
+    free(*filter.A,, allocator);
+    free(*filter.d1,, allocator);
+    free(*filter.d2,, allocator);
+    free(*filter.w0,, allocator);
+    free(*filter.w1,, allocator);
+    free(*filter.w2,, allocator);
 
     #if t == jdsp_bandstop || t == jdsp_bandpass {
-        free(*filter.d3, allocator);
-        free(*filter.d4, allocator);
-        free(*filter.w3, allocator);
-        free(*filter.w4, allocator);
+        free(*filter.d3,, allocator);
+        free(*filter.d4,, allocator);
+        free(*filter.w3,, allocator);
+        free(*filter.w4,, allocator);
     }
 
     free(filter);

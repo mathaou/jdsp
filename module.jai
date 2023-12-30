@@ -146,6 +146,9 @@ jfft_destroy_transformer :: (jfft: *jfft_transformer) {
 }
 
 #load "windowing.jai";
-#load "filter.jai";
+#if 0 {
+    // WIP filters aren't quite ready
+    #load "filter.jai";
+}
 #load "fft_forward.jai";
 #load "fft_backward.jai";
