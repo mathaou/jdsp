@@ -393,13 +393,13 @@ __dradf2 :: (ido: int, l1: int, cc: []float32, ch: []float32, wa1: []float32) {
     if ido % 2 == 1 return;
 
     t1 = ido;
-    t2 = t1;
+    t2 = t1 - 1;
     t3 = t2 - 1;
     t2 += t0;
 
     for 0..l1-1 {
-        << (ch.data + t1) = - (<< (cc.data + t2));
-        << (ch.data + t1 - 1) = << (cc.data + t3);
+        ch[t1]     = -cc[t2];
+        ch[t1 - 1] =  cc[t3];
         t1 += ido << 1;
         t2 += ido;
         t3 += ido;
@@ -499,10 +499,10 @@ __dradf4 :: (ido: int, l1: int, cc: []float32, ch: []float32, wa1: []float32, wa
     for 0..l1-1 {
         ti1 = -HALF_SQRT_TWO * cc[t1] + cc[t2];
         tr1 = HALF_SQRT_TWO * cc[t1] - cc[t2];
-        cc[t4 - 1] = tr1 + cc[t6 - 1];
-        cc[t4 + t5 - 1] = cc[t6 - 1] - tr1;
-        cc[t4] = ti1 - cc[t1 + t0];
-        cc[t4 + t5] = ti1 + cc[t1 + t0];
+        ch[t4 - 1] = tr1 + cc[t6 - 1];
+        ch[t4 + t5 - 1] = cc[t6 - 1] - tr1;
+        ch[t4] = ti1 - cc[t1 + t0];
+        ch[t4 + t5] = ti1 + cc[t1 + t0];
         t1 += ido;
         t2 += ido;
         t4 += t3;
