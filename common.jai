@@ -44,7 +44,7 @@ __M_PI : float32 = 3.1415927;
 }
 
 log10f :: (arg: float32) -> float32 #foreign libm;
-log2 :: (arg: float32) -> float32 #foreign libm;
+//log2 :: (arg: float32) -> float32 #foreign libm;
 logf :: (arg: float32) -> float32 #foreign libm;
 coshf :: (arg: float32) -> float32 #foreign libm;
 cosf :: (arg: float32) -> float32 #foreign libm;
